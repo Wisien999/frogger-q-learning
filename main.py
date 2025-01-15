@@ -4,6 +4,8 @@ if __name__ == "__main__":
     env = JumperFrogEnv(render_mode="human")
     obs, info = env.reset()
 
+    env.render()
+
     done = False
     total_reward = 0
 
