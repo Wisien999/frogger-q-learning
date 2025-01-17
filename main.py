@@ -120,21 +120,20 @@ def find_hyperparameters():
 
 def visualize_steps(env: JumperFrogEnv, qtable: dict):
     env = JumperFrogEnv()
-    for _ in range(5):
-        reward = 0
-        print("Starting new simulation")
-        state, _ = env.reset()
-        done = False
-        i = 0
-        while not done and i < 20:
-            env.render()
-            action = np.argmax([qtable.get((tuple(state.flatten()), a), 0) for a in range(env.action_space.n)])
-            state, rew, terminated, truncated, _ = env.step(action)
-            reward += rew
-            done = terminated or truncated
-            i += 1
-            if done or i == 19:
-                print("Done because", "terminated" if terminated else "i reached")
+    reward = 0
+    print("Starting new simulation")
+    state, _ = env.reset()
+    done = False
+    i = 0
+    while not done and i < 20:
+        env.render()
+        action = np.argmax([qtable.get((tuple(state.flatten()), a), 0) for a in range(env.action_space.n)])
+        state, rew, terminated, truncated, _ = env.step(action)
+        reward += rew
+        done = terminated or truncated
+        i += 1
+        if done or i == 19:
+            print("Done because", "terminated" if terminated else "i reached")
 
         env.render()
         print("Complete (accumulated) reward over simulation", reward)
