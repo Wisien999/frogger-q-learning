@@ -6,9 +6,8 @@ from gymnasium import spaces
 
 
 class JumperFrogEnv(gym.Env):
-    metadata = {"render_modes": ["human"]}
 
-    def __init__(self, render_mode=None, width=7, height=5, num_cars_per_lane=2, view_size=5):
+    def __init__(self, width=7, height=5, num_cars_per_lane=2, view_size=5):
         super(JumperFrogEnv, self).__init__()
         self.width = width
         self.height = height
@@ -21,7 +20,6 @@ class JumperFrogEnv(gym.Env):
             shape=(view_size, view_size),  # Observation grid
             dtype=np.float32
         )
-        self.render_mode = render_mode
         self.frog_x = None
         self.frog_y = None
         self.cars = []
