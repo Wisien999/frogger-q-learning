@@ -11,19 +11,19 @@ TIMEOUT = 2  # Limit czasu w sekundach
 
 def train_q_learning_wrapper(params):
     alpha, gamma, epsilon, epsilon_decay = params
-    env = JumperFrogEnv()  # 🚀 Tworzymy nowe środowisko dla każdego procesu
+    env = JumperFrogEnv()
     q_table, rewards = train_q_learning(env, 1000, alpha, gamma, epsilon, epsilon_decay)
-    score = evaluate_agent(env, q_table)  # 🏆 Ewaluacja wyniku na podstawie Q-tablicy
+    score = evaluate_agent(env, q_table)
     return params, score, q_table
 
 
 def train_q_learning(env, episodes, alpha, gamma, epsilon, epsilon_decay, max_time=2.0):
     q_table = {}
     rewards = []
-    start_time = time.time()  # ⏳ Start pomiaru czasu
+    start_time = time.time()
 
     for episode in range(episodes):
-        if time.time() - start_time > max_time:  # ⏳ Przerwij jeśli przekroczono czas
+        if time.time() - start_time > max_time:
             print(f"Training stopped early after {episode} episodes (took too long)")
             return q_table, rewards
 
@@ -95,23 +95,21 @@ def find_hyperparameters():
     best_q_table = None
     TIMEOUT = 2.0  # **Maksymalny czas trwania jednego treningu (sekundy)**
 
-    with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:  # 🌍 Używamy wszystkich rdzeni CPU
+    with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
         results = []
 
         for params in hyperparameters:
             print(f"Testing parameters: {params}")
 
-            async_result = pool.apply_async(train_q_learning_wrapper, (params,))  # 🚀 Asynchroniczny start procesu
+            async_result = pool.apply_async(train_q_learning_wrapper, (params,))
 
             try:
-                # ⏳ Oczekujemy na wynik w czasie <= TIMEOUT
                 result = async_result.get(timeout=TIMEOUT)
-                results.append(result)  # ✅ Dodajemy tylko zakończone w czasie wyniki
+                results.append(result)
             except multiprocessing.TimeoutError:
                 print(f"Skipping parameters {params} (execution took too long)")
-                continue  # ⏭️ Przechodzimy do następnej kombinacji
+                continue
 
-    # **Wybieramy najlepszy wynik**
     for params, score, q_table in results:
         print(f"Parameters: {params}, Score: {score}")
 
@@ -125,7 +123,6 @@ def find_hyperparameters():
     return best_params, best_score, best_q_table
 
 def visualize_steps(env: JumperFrogEnv, qtable: dict):
-    # **Wizualizacja najlepszego agenta**
     env = JumperFrogEnv()
     reward = 0
     print("Starting new simulation")
