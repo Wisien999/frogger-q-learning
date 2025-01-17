@@ -14,12 +14,6 @@ class JumperFrogEnv(gym.Env):
         self.num_cars_per_lane = num_cars_per_lane
         self.view_size = view_size  # Size of the observation grid (view_size x view_size)
         self.action_space = spaces.Discrete(4)  # Actions: up, down, left, right
-        self.observation_space = spaces.Box(
-            low=-self.width,  # Velocity of cars or 0
-            high=self.width,  # Max velocity in any direction
-            shape=(view_size, view_size),  # Observation grid
-            dtype=np.float32
-        )
         self.frog_x = None
         self.frog_y = None
         self.cars = []
@@ -37,6 +31,7 @@ class JumperFrogEnv(gym.Env):
         self.frog_x = self.width // 2
         self.frog_y = self.height - 1
         self._initialize_cars()
+        
         return self._get_obs(), {}
 
     def step(self, action):
