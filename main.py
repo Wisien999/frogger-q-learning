@@ -6,7 +6,7 @@ import numpy as np
 
 from enviroment import JumperFrogEnv
 
-TIMEOUT = 2  # Limit czasu w sekundach
+TIMEOUT = 2.0  # Limit czasu w sekundach
 
 
 def train_q_learning_wrapper(params):
@@ -63,7 +63,7 @@ def evaluate_agent(env, q_table, episodes=100):
     total_rewards = []
     for _ in range(episodes):
         state, _ = env.reset()
-        state = tuple(state.flatten())  # Konwersja stanu na krotkę
+        state = tuple(state.flatten())
         total_reward = 0
         done = False
 
@@ -93,7 +93,6 @@ def find_hyperparameters():
     best_score = float('-inf')
     best_params = None
     best_q_table = None
-    TIMEOUT = 2.0  # **Maksymalny czas trwania jednego treningu (sekundy)**
 
     with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
         results = []
