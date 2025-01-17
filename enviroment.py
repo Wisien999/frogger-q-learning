@@ -94,7 +94,11 @@ class JumperFrogEnv(gym.Env):
         grid = [["." for _ in range(self.width)] for _ in range(self.height)]
         for (cx, cy, _) in self.cars:
             grid[cy][cx] = "C"
-        grid[self.frog_y][self.frog_x] = "F"
+        if grid[self.frog_y][self.frog_x] == "C":
+            grid[self.frog_y][self.frog_x] = "X"
+        else:
+            grid[self.frog_y][self.frog_x] = "F"
+
         print("=" * (self.width + 2))
         for row in grid:
             print("|" + "".join(row) + "|")

@@ -80,7 +80,7 @@ def evaluate_agent(env, q_table, episodes=100):
     return np.mean(total_rewards)
 
 
-if __name__ == "__main__":
+def find_hyperparameters():
     # **Lista hiperparametrów do testowania**
     hyperparameters = [
         (alpha, gamma, epsilon, epsilon_decay)
@@ -122,14 +122,29 @@ if __name__ == "__main__":
 
     print(f"Best Parameters: {best_params} with Score: {best_score}")
 
+    return best_params, best_score, best_q_table
+
+def visualize_steps(env: JumperFrogEnv, qtable: dict):
     # **Wizualizacja najlepszego agenta**
     env = JumperFrogEnv()
     for _ in range(5):
+        print("Starting new simulation")
         state, _ = env.reset()
         done = False
         while not done:
             env.render()
-            action = np.argmax([best_q_table.get((tuple(state.flatten()), a), 0) for a in range(env.action_space.n)])
+            action = np.argmax([qtable.get((tuple(state.flatten()), a), 0) for a in range(env.action_space.n)])
             state, _, terminated, truncated, _ = env.step(action)
             done = terminated or truncated
+            if done:
+                print("Done because", "terminated" if terminated else "truncated")
         env.render()
+        print('-'*50)
+
+
+if __name__ == "__main__":
+    params = (0.125, 0.775, 0.85, 0.995)
+    alpha, gamma, epsilon, epsilon_decay = params
+    env = JumperFrogEnv()
+    qtable, _ = train_q_learning(env, 10000, alpha, gamma, epsilon, epsilon_decay, max_time=5.0)
+    visualize_steps(env, qtable)
