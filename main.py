@@ -1,8 +1,10 @@
 import multiprocessing
+from argparse import ArgumentParser
 import random
 import time
-
+import matplotlib.pyplot as plt
 import numpy as np
+import pickle
 
 from enviroment import JumperFrogEnv
 
@@ -17,22 +19,31 @@ def train_q_learning_wrapper(params):
     return params, score, q_table
 
 
-def train_q_learning(env, episodes, alpha, gamma, epsilon, epsilon_decay, max_time=2.0):
+def train_q_learning(env, episodes, alpha, gamma, epsilon, epsilon_decay, max_time=2.0, epoch_max_time=1.0):
     q_table = {}
     rewards = []
     start_time = time.time()
 
     for episode in range(episodes):
-        if time.time() - start_time > max_time:
-            print(f"Training stopped early after {episode} episodes (took too long)")
-            return q_table, rewards
+        # if time.time() - start_time > max_time:
+        #     print(f"Training stopped early after {episode} episodes (took too long)")
+        #     return q_table, rewards
 
         state, _ = env.reset()
         state = tuple(state.flatten())
         total_reward = 0
         done = False
+        simulation_start_time = time.time()
+        skipped = False
 
         while not done:
+            if time.time() - simulation_start_time > epoch_max_time:
+                print("Long simulation. Skipping...")
+                break 
+            if time.time() - start_time > max_time:
+                print(f"Training stopped early after {episode} episodes (took too long)")
+                return q_table, rewards
+
             if random.uniform(0, 1) < epsilon:
                 action = env.action_space.sample()
             else:
@@ -129,6 +140,9 @@ def visualize_steps(env: JumperFrogEnv, qtable: dict):
     done = False
     i = 0
     while not done and i < 20:
+        # if i == 2:
+        #     from pprint import pprint
+        #     pprint(env._get_obs())
         env.render()
         action = np.argmax([qtable.get((tuple(state.flatten()), a), 0) for a in range(env.action_space.n)])
         state, rew, terminated, truncated, _ = env.step(action)
@@ -143,9 +157,69 @@ def visualize_steps(env: JumperFrogEnv, qtable: dict):
     print('-'*50)
 
 
+
+def save_average_reward_plot(rewards, filename='average_reward_plot.png', window=50):
+    """
+    Saves a plot of the moving average reward of a Q-learning agent.
+    
+    :param rewards: List of rewards per episode.
+    :param filename: File name to save the plot.
+    :param window: Window size for moving average.
+    """
+    if not rewards:
+        print("Error: Rewards list is empty.")
+        return
+    
+    # Compute moving average
+    avg_rewards = np.convolve(rewards, np.ones(window)/window, mode='valid')
+    
+    plt.figure(figsize=(10, 5))
+    plt.plot(avg_rewards, label=f'Moving Average (window={window})', color='b')
+    plt.xlabel('Episode')
+    plt.ylabel('Average Reward')
+    plt.title('Q-Learning Agent Average Reward Over Episodes')
+    plt.legend()
+    plt.grid(True)
+    
+    # Save plot
+    plt.savefig(filename)
+    plt.close()
+    print(f'Plot saved as {filename}')
+
+
+
+
 if __name__ == "__main__":
-    params = (0.125, 0.775, 0.85, 0.995)
-    alpha, gamma, epsilon, epsilon_decay = params
+    parser = ArgumentParser()
+    parser.add_argument('-t', '--train', action='store_true')
+    args = vars(parser.parse_args())
+
     env = JumperFrogEnv()
-    qtable, _ = train_q_learning(env, 10_000, alpha, gamma, epsilon, epsilon_decay, max_time=5.0)
+
+    if args['train']:
+        params = (0.125, 0.775, 0.85, 0.995)
+        alpha, gamma, epsilon, epsilon_decay = params
+
+        print("Starting training...")
+        qtable, rewards = train_q_learning(env, 500_000, alpha, gamma, epsilon, epsilon_decay, max_time=120.0)
+        print("Training finished!")
+
+        with open("q_table.pkl", "wb") as f:
+            pickle.dump(qtable, f)
+
+        print(f"Rewards list length:", len(rewards))
+
+        print("Saving plots...")
+        save_average_reward_plot(rewards, 'avg_reward_50.png', window=50)
+        save_average_reward_plot(rewards, 'avg_reward_100.png', window=100)
+        save_average_reward_plot(rewards, 'avg_reward_500.png', window=500)
+
+        with open("q_table.pkl", "wb") as f:
+            pickle.dump(qtable, f)
+    else:
+        with open("q_table.pkl", "rb") as f:
+            qtable = pickle.load(f)
+
+    print("Visualization of learned frog behaviour")
     visualize_steps(env, qtable)
+
